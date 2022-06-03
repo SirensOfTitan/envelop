@@ -1,7 +1,7 @@
 import { Plugin, OnExecuteHookResult, isAsyncIterable } from '@envelop/core';
 import { SpanAttributes, SpanKind } from '@opentelemetry/api';
 import * as opentelemetry from '@opentelemetry/api';
-import { BasicTracerProvider, ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/tracing';
+import { BasicTracerProvider, ConsoleSpanExporter, SimpleSpanProcessor, TracerProvider } from '@opentelemetry/tracing';
 import { print } from 'graphql';
 
 export enum AttributeName {
@@ -31,18 +31,18 @@ type PluginContext = {
 
 export const useOpenTelemetry = (
   options: TracingOptions,
-  tracingProvider?: BasicTracerProvider,
+  tracerProvider?: TracerProvider,
   spanKind: SpanKind = SpanKind.SERVER,
   spanAdditionalAttributes: SpanAttributes = {},
   serviceName = 'graphql'
 ): Plugin<PluginContext> => {
-  if (!tracingProvider) {
-    tracingProvider = new BasicTracerProvider();
-    tracingProvider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
-    tracingProvider.register();
+  if (!tracerProvider) {
+    tracerProvider = new BasicTracerProvider();
+    tracerProvider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+    tracerProvider.register();
   }
 
-  const tracer = tracingProvider.getTracer(serviceName);
+  const tracer = tracerProvider.getTracer(serviceName);
 
   return {
     onResolverCalled: options.resolvers
